@@ -1,17 +1,17 @@
-# BillFlow — Billing & Inventory Management (₹)
+# BillFlow — Billing & Inventory Management System 
 
-A complete billing + inventory + sales management web app with UPI QR payments,
-printable invoices (A4 + thermal), CSV import/export, role-based auth, charts,
-and a sales dashboard. Designed for general retail shops in India.
+A complete billing , inventory , sales management web application that supports UPI QR payments,
+printable invoices , CSV import/export (for stocks ) , role-based authorization , charts,
+and a sales dashboard. Mainly Designed for general retail shops in India.
 
-**Stack:** React + Vite + Tailwind (frontend) · Node.js + Express + better-sqlite3 (backend) · JWT auth · Recharts · jsPDF · qrcode
+Stack used --> React + Vite + Tailwind (frontend) · Node.js + Express + better-sqlite3 (backend) · JWT auth · Recharts · jsPDF · qrcode
 
 ## Quick start
 
 ```bash
 # 1. Backend
 cd server
-cp .env.example .env
+cp .env.example .env (for windows use copy .env.example .env)
 npm install
 npm run seed     # creates ./data/billflow.db with demo data
 npm run dev      # http://localhost:4000
