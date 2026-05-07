@@ -1,7 +1,7 @@
 # BillFlow — Billing & Inventory Management System 
 
 A complete billing , inventory , sales management web application that supports UPI QR payments,
-printable invoices , CSV import/export (for stocks ) , role-based authorization , charts,
+printable invoices , CSV import/export , role-based authorization , charts,
 and a sales dashboard. Mainly Designed for general retail shops in India.
 
 Stack used --> React + Vite + Tailwind (frontend) · Node.js + Express + better-sqlite3 (backend) · JWT auth · Recharts · jsPDF · qrcode
