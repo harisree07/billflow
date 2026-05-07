@@ -1,0 +1,3 @@
+name,sku,barcode,category,brand,unit,cost_price,price,tax_rate,stock,low_stock
+Sample Item A,SKU-A001,1111111111,Grocery,Generic,pcs,10,15,5,100,10
+Sample Item B,SKU-B002,2222222222,Snacks,Generic,pcs,20,30,12,50,5
