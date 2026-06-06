@@ -1,34 +1,65 @@
 # BillFlow — Billing & Inventory Management System 
 
-A complete billing , inventory , sales management web application that supports UPI QR payments,
-printable invoices , CSV import/export , role-based authorization , charts,
+A complete billing, inventory, sales management web application that supports UPI QR payments,
+printable invoices, CSV import/export, role-based authorization, charts,
 and a sales dashboard. Mainly Designed for general retail shops in India.
 
-Stack used --> React + Vite + Tailwind (frontend) · Node.js + Express + better-sqlite3 (backend) · JWT auth · Recharts · jsPDF · qrcode
+**Stack:** React + Vite + Tailwind (frontend) · Supabase (backend as a service) · PostgreSQL (database) · RLS Security & Triggers · Recharts · jsPDF · qrcode
 
-## Quick start
+---
 
-```bash
-# 1. Backend
-cd server
-cp .env.example .env (for windows use copy .env.example .env)
-npm install
-npm run seed     # creates ./data/billflow.db with demo data
-npm run dev      # http://localhost:4000
+## Quick Start (Supabase Setup)
 
-# 2. Frontend (new terminal)
-cd client
-npm install
-npm run dev      # http://localhost:5173
-```
+### 1. Create a Supabase Project
+1. Go to [supabase.com](https://supabase.com) and create a free project named `BillFlow`.
+2. Once created, navigate to **Settings** (gear icon) -> **API** -> Copy your **Project URL** and your **Legacy anon public key** (starts with `eyJ...`).
 
-Open http://localhost:5173 and log in:
+### 2. Setup the Database
+1. In the Supabase dashboard sidebar, click on **SQL Editor**.
+2. Click **New query**.
+3. Locate the `schema.sql` file in the project (or copy the contents from your setup notes) and run the script. This creates all tables, triggers, RPC functions, and seeds your default products and login accounts.
+4. Go to **Authentication** -> **Users** and click **Add User** -> **Create User** to register:
+   * **Email**: `admin@billflow.in`
+   * **Password**: `admin123`
+   * Ensure **Auto-confirm User** is turned on.
+5. Elevate the user role in the SQL editor:
+   ```sql
+   UPDATE public.profiles SET role = 'admin' WHERE email = 'admin@billflow.in';
+   ```
+
+### 3. Start the Frontend
+1. Navigate into the client directory:
+   ```bash
+   cd client
+   ```
+2. Copy the environment variables:
+   ```bash
+   cp .env.example .env (for windows use: copy .env.example .env)
+   ```
+3. Open `client/.env` and paste your Supabase keys:
+   ```env
+   VITE_SUPABASE_URL=https://your-project-id.supabase.co
+   VITE_SUPABASE_ANON_KEY=eyJ... (your long copied legacy key)
+   ```
+4. Install packages and start the Vite dev server:
+   ```bash
+   npm install --legacy-peer-deps
+   npm run dev      # http://localhost:5173
+   ```
+
+---
+
+## Seed Credentials
 
 | Role    | Email                | Password   |
 |---------|----------------------|------------|
 | Admin   | admin@billflow.in    | admin123   |
-| Cashier | cashier@billflow.in  | cashier123 |
 | Manager | manager@billflow.in  | manager123 |
+| Cashier | cashier@billflow.in  | cashier123 |
+
+*(Note: Ensure you create these accounts in Supabase Auth first, then set their roles in the `public.profiles` database table using SQL or the dashboard UI).*
+
+---
 
 ## Features
 
@@ -42,56 +73,45 @@ Open http://localhost:5173 and log in:
   exact amount, payee name, and txn note.
 - **Customers & suppliers:** records with purchase history & dues.
 - **Multi-purpose:** configurable tax %, business name, logo, address, GSTIN.
-- **Roles:** admin / manager / cashier with route guards.
+- **Roles:** admin / manager / cashier with route guards (Row-Level Security enforced).
 - **Print:** A4 invoice + 80mm thermal receipt layouts, one-click print.
-- **Extras:** dark mode, activity/audit log, expense tracking, daily closing,
-  backup download (.db), demo seed data.
+- **Extras:** dark mode, activity/audit log, expense tracking, backup download (JSON), demo seed data.
 
-## Folder structure
+---
+
+## Folder Structure
 
 ```
 billflow/
-├── server/            Express API + SQLite
-│   ├── src/
-│   │   ├── index.js   server entry
-│   │   ├── db.js      better-sqlite3 + schema
-│   │   ├── auth.js    JWT + role middleware
-│   │   ├── routes/    products, bills, customers, suppliers, reports, settings, expenses
-│   │   └── seed.js    demo data
-│   ├── data/          billflow.db (generated)
-│   └── .env.example
 ├── client/            React + Vite + Tailwind
 │   └── src/
 │       ├── pages/     Login, Dashboard, Billing, Invoices, Inventory, Customers, Suppliers, Reports, Expenses, Settings, AuditLog
 │       ├── components/ Layout, Sidebar, ProtectedRoute, etc.
-│       └── lib/       api client, formatters
+│       ├── context/   AuthContext
+│       └── lib/       api client facade, supabaseClient, formatters
+├── schema.sql         Supabase SQL Schema & Seed Database script
 └── README.md
 ```
 
-## Environment
+---
 
-`server/.env`:
-```
-PORT=4000
-JWT_SECRET=change-me-in-production
-```
+## Backup / Restore
 
-`client/.env` (optional):
-```
-VITE_API_URL=http://localhost:4000
-```
+- **Backup:** Settings → Download Backup (downloads the database snapshot as a `.json` backup file containing settings, products, customers, and suppliers).
+- **Restore:** Managed directly through your Supabase account backup portal.
 
-## Backup / restore
+---
 
-- **Backup:** Settings → Download Backup (saves `billflow.db`).
-- **Restore:** stop server, replace `server/data/billflow.db`, restart.
+## Production Build
 
-## Production build
+Since this is now a static client-side application (SPA), you can host the build folder (`client/dist`) directly on Vercel, Netlify, GitHub Pages, or Supabase Hosting with zero server costs:
 
 ```bash
-cd client && npm run build      # outputs client/dist
-cd ../server && npm start       # serves API + client/dist
+cd client
+npm run build      # outputs client/dist
 ```
+
+---
 
 ## License
 

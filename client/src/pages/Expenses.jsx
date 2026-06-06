@@ -8,7 +8,10 @@ export default function Expenses() {
   const load = () => api.get('/api/expenses').then(setList);
   useEffect(() => { load(); }, []);
   const add = async () => {
-    if (!form.title || !form.amount) return;
+    if (!form.title || !form.amount) {
+      toast.error('Please enter a title and amount');
+      return;
+    }
     await api.post('/api/expenses', form);
     setForm({ title:'', amount:0, category:'', notes:'' });
     toast.success('Expense added'); load();

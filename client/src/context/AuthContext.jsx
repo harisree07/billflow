@@ -1,33 +1,77 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { api } from '../lib/api.js';
+import { supabase } from '../lib/supabaseClient.js';
 
 const Ctx = createContext(null);
 export const useAuth = () => useContext(Ctx);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    const u = localStorage.getItem('bf_user');
-    return u ? JSON.parse(u) : null;
-  });
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  async function fetchProfile(authUser) {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, email, role')
+        .eq('id', authUser.id)
+        .single();
+
+      if (!error && data) {
+        // Merge Supabase Auth user metadata with DB profile
+        setUser({ ...authUser, ...data });
+      } else {
+        console.error('Error fetching profile:', error);
+        setUser(null);
+      }
+    } catch (err) {
+      console.error(err);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   useEffect(() => {
-    const t = localStorage.getItem('bf_token');
-    if (!t) { setLoading(false); return; }
-    api.get('/api/auth/me').then(d => setUser(d.user)).catch(() => {
-      localStorage.removeItem('bf_token'); localStorage.removeItem('bf_user'); setUser(null);
-    }).finally(() => setLoading(false));
+    // Check active session on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        fetchProfile(session.user);
+      } else {
+        setUser(null);
+        setLoading(false);
+      }
+    });
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        fetchProfile(session.user);
+      } else {
+        setUser(null);
+        setLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (email, password) => {
-    const d = await api.post('/api/auth/login', { email, password });
-    localStorage.setItem('bf_token', d.token);
-    localStorage.setItem('bf_user', JSON.stringify(d.user));
-    setUser(d.user);
-  };
-  const logout = () => {
-    localStorage.removeItem('bf_token'); localStorage.removeItem('bf_user'); setUser(null);
+    setLoading(true);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      setLoading(false);
+      throw new Error(error.message);
+    }
   };
 
-  return <Ctx.Provider value={{ user, login, logout, loading }}>{children}</Ctx.Provider>;
+  const logout = async () => {
+    setLoading(true);
+    await supabase.auth.signOut();
+  };
+
+  return (
+    <Ctx.Provider value={{ user, login, logout, loading }}>
+      {children}
+    </Ctx.Provider>
+  );
 }
